@@ -82,22 +82,30 @@ function sendToCalendar(e) {
      各クラスに応じて指定された時間を設定
     ***/
     if (className == '初級クラス') {
-      if (nDate.getDay() == 0 || nDate.getDay() == 6 || isHoliday(nDate) == true) {
-        if (nTime == '11:30 ~ (土日祝)') {
+      if (nDate.getDay() == 0 || nDate.getDay() == 6 /*|| isHoliday(nDate) == true*/) {
+        if (nTime == '10:00 ~ (土日)') {
+          nDate.setHours(10,00);
+        } else if (nTime == '11:30 ~ (土日)') {
           nDate.setHours(11,30);
-        } else if (nTime == '13:30 ~ (土日祝)') {
+        } else if (nTime == '13:30 ~ (土日)') {
           nDate.setHours(13,30);
-        } else if (nTime == '15:00 ~ (土日祝)') {
+        } else if (nTime == '15:00 ~ (土日)') {
           nDate.setHours(15,00);
         } else {
           nFailure = true;
         }
       } else if (nDate.getDay() == 1 || nDate.getDay() == 2) {
-        if (nTime == '15:30 ~ (平日)') {
+        if (nTime == '10:30 ~ (月火)') {
+          nDate.setHours(10,30);
+        } else if (nTime == '12:30 ~ (月火)') {
+          nDate.setHours(12,30);
+        } else if (nTime == '14:00 ~ (月火)') {
+          nDate.setHours(14,00);
+        } else if (nTime == '15:30 ~ (月火)') {
           nDate.setHours(15,30);
-        } else if (nTime == '17:00 ~ (平日)') {
+        } else if (nTime == '17:00 ~ (月火)') {
           nDate.setHours(17,00);
-        } else if (nTime == '18:30 ~ (平日)') {
+        } else if (nTime == '18:30 ~ (月火)') {
           nDate.setHours(18,30);
         } else {
           nFailure = true;
@@ -106,20 +114,18 @@ function sendToCalendar(e) {
         nFailure = true;
       }
     } else if (className == '中級クラス') {
-      if (nDate.getDay() == 0 || nDate.getDay() == 6 || isHoliday(nDate) == true) {
-        if (nTime == '10:00 ~ (土日祝)') {
-          nDate.setHours(10,00);
-        } else if (nTime == '16:30 ~ (土日祝)') {
+      if (nDate.getDay() == 0 || nDate.getDay() == 6 /*|| isHoliday(nDate) == true*/) {
+        if (nTime == '16:30 ~ (土日)') {
           nDate.setHours(16,30);
-        } else if (nTime == '18:00 ~ (土日祝)') {
+        } else if (nTime == '18:00 ~ (土日)') {
           nDate.setHours(18,00);
+        } else if (nTime == '19:30 ~ (土日)') {
+          nDate.setHours(19,30);
         } else {
           nFailure = true;
         }
       } else if (nDate.getDay() == 1 || nDate.getDay() == 2) {
-        if (nTime == '14:00 ~ (平日)') {
-          nDate.setHours(14,00);
-        } else if (nTime == '20:00 ~ (平日)') {
+        if (nTime == '20:00 ~ (月火)') {
           nDate.setHours(20,00);
         } else {
           nFailure = true;
@@ -127,18 +133,7 @@ function sendToCalendar(e) {
       } else {
         nFailure = true;
       }
-/*
-    } else if (className == 'シニアクラス') {
-      if (nDate.getDay() == 1 || nDate.getDay() == 2) {
-        if (nTime == '14:00 ~ (平日)') {
-          nDate.setHours(14,00);
-        } else {
-          nFailure = true;
-        }
-      } else {
-        nFailure = true;
-      }
-*/
+
     } else {
       nFailure = true;
     }
