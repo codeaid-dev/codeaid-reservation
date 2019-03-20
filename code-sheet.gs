@@ -45,9 +45,6 @@ function sendToCalendar(e) {
     } else if (className == '中級クラス') {
       var nDay = sheet.getRange(num_row, 7).getValue(); // 予約日
       var nTime = sheet.getRange(num_row, 8).getValue(); // 予約時間
-    } else if (className == 'シニアクラス') {
-      var nDay = sheet.getRange(num_row, 9).getValue(); // 予約日
-      var nTime = sheet.getRange(num_row, 10).getValue(); // 予約時間
     }
     var nDate = new Date(nDay);
 
