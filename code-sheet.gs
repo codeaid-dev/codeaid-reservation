@@ -7,7 +7,7 @@ function sendToCalendar(e) {
     var cal = CalendarApp.getCalendarById("ckvtvietabikeccicq31vpok10@group.calendar.google.com");
 
     var nFailure = false;
-    var LIMIT_CLASS = 2; // 予約上限を設定(同一時間の上限)
+    var LIMIT_CLASS = 1; // 予約上限を設定(同一時間の上限)
     var num_row = sheet.getLastRow(); // 新規予約された行番号を取得
     var mail = sheet.getRange(num_row, 2).getValue(); // メルアド
     var name = sheet.getRange(num_row, 3).getValue(); // 名前
