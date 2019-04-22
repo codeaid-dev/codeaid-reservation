@@ -252,7 +252,7 @@ function sendFailureMail(type, username, mail, className) {
   + '【メール】contact@codeaid.jp\n'
   + '=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=\n';
 
-  MailApp.sendEmail(mail, title, cont);
+  GmailApp.sendEmail(mail, title, cont, {name: 'CodeAidプログラミング教室'});
 }
 
 /***
@@ -261,7 +261,6 @@ function sendFailureMail(type, username, mail, className) {
 function sendMailToUser(rStart, username, mail, className){
   var dateStr = rStart.toLocaleString("ja-JP");
   var title = '【CodeAid教室予約】予約完了';
-//  var png = getMapImage("大阪府吹田市垂水町1-7-23"); // 住所または場所名などGoogleMapsでわかるもの
   var message = '<html><body>' + username + '様<br><br>'
     + className + 'の予約が完了しました。<br>'
     + '【予約日時】' + dateStr + '<br><br>'
@@ -271,15 +270,13 @@ function sendMailToUser(rStart, username, mail, className){
     + '【住所】大阪府吹田市垂水町1-7-23-103<br>'
     + '【電話番号】090-8193-2811<br>'
     + '【メール】contact@codeaid.jp<br>'
-//    + '【Googleマップ】<br>'
-//    + '<img src="cid:map" width="400px" height="300px"><br>'
     + '=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=</body></html>';
-  MailApp.sendEmail({
-    to: mail,
-    subject: title,
-    htmlBody: message,
-//    inlineImages:{ map: png},
-//      attachments:[png]
+  GmailApp.sendEmail(
+    mail,
+    title,
+    '予約完了メール',{
+      htmlBody: message,
+      name: 'CodeAidプログラミング教室'
   });
 }
 
