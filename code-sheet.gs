@@ -7,7 +7,7 @@ function sendToCalendar(e) {
     var cal = CalendarApp.getCalendarById("ckvtvietabikeccicq31vpok10@group.calendar.google.com");
 
     var nFailure = false;
-    var LIMIT_CLASS = 2; // 予約上限を設定(同一時間の上限)
+    var LIMIT_CLASS = 1; // 予約上限を設定(同一時間の上限)
     var num_row = sheet.getLastRow(); // 新規予約された行番号を取得
     var mail = sheet.getRange(num_row, 2).getValue(); // メルアド
     var name = sheet.getRange(num_row, 3).getValue(); // 名前
@@ -45,9 +45,6 @@ function sendToCalendar(e) {
     } else if (className == '中級クラス') {
       var nDay = sheet.getRange(num_row, 7).getValue(); // 予約日
       var nTime = sheet.getRange(num_row, 8).getValue(); // 予約時間
-    } else if (className == 'シニアクラス') {
-      var nDay = sheet.getRange(num_row, 9).getValue(); // 予約日
-      var nTime = sheet.getRange(num_row, 10).getValue(); // 予約時間
     }
     var nDate = new Date(nDay);
 
@@ -85,22 +82,30 @@ function sendToCalendar(e) {
      各クラスに応じて指定された時間を設定
     ***/
     if (className == '初級クラス') {
-      if (nDate.getDay() == 0 || nDate.getDay() == 6 || isHoliday(nDate) == true) {
-        if (nTime == '11:30 ~ (土日祝)') {
+      if (nDate.getDay() == 0 || nDate.getDay() == 6 /*|| isHoliday(nDate) == true*/) {
+        if (nTime == '10:00 ~ (土日)') {
+          nDate.setHours(10,00);
+        } else if (nTime == '11:30 ~ (土日)') {
           nDate.setHours(11,30);
-        } else if (nTime == '13:30 ~ (土日祝)') {
+        } else if (nTime == '13:30 ~ (土日)') {
           nDate.setHours(13,30);
-        } else if (nTime == '15:00 ~ (土日祝)') {
+        } else if (nTime == '15:00 ~ (土日)') {
           nDate.setHours(15,00);
         } else {
           nFailure = true;
         }
       } else if (nDate.getDay() == 1 || nDate.getDay() == 2) {
-        if (nTime == '15:30 ~ (平日)') {
+        if (nTime == '10:30 ~ (月火)') {
+          nDate.setHours(10,30);
+        } else if (nTime == '12:30 ~ (月火)') {
+          nDate.setHours(12,30);
+        } else if (nTime == '14:00 ~ (月火)') {
+          nDate.setHours(14,00);
+        } else if (nTime == '15:30 ~ (月火)') {
           nDate.setHours(15,30);
-        } else if (nTime == '17:00 ~ (平日)') {
+        } else if (nTime == '17:00 ~ (月火)') {
           nDate.setHours(17,00);
-        } else if (nTime == '18:30 ~ (平日)') {
+        } else if (nTime == '18:30 ~ (月火)') {
           nDate.setHours(18,30);
         } else {
           nFailure = true;
@@ -109,20 +114,18 @@ function sendToCalendar(e) {
         nFailure = true;
       }
     } else if (className == '中級クラス') {
-      if (nDate.getDay() == 0 || nDate.getDay() == 6 || isHoliday(nDate) == true) {
-        if (nTime == '10:00 ~ (土日祝)') {
-          nDate.setHours(10,00);
-        } else if (nTime == '16:30 ~ (土日祝)') {
+      if (nDate.getDay() == 0 || nDate.getDay() == 6 /*|| isHoliday(nDate) == true*/) {
+        if (nTime == '16:30 ~ (土日)') {
           nDate.setHours(16,30);
-        } else if (nTime == '18:00 ~ (土日祝)') {
+        } else if (nTime == '18:00 ~ (土日)') {
           nDate.setHours(18,00);
+        } else if (nTime == '19:30 ~ (土日)') {
+          nDate.setHours(19,30);
         } else {
           nFailure = true;
         }
       } else if (nDate.getDay() == 1 || nDate.getDay() == 2) {
-        if (nTime == '14:00 ~ (平日)') {
-          nDate.setHours(14,00);
-        } else if (nTime == '20:00 ~ (平日)') {
+        if (nTime == '20:00 ~ (月火)') {
           nDate.setHours(20,00);
         } else {
           nFailure = true;
@@ -130,18 +133,7 @@ function sendToCalendar(e) {
       } else {
         nFailure = true;
       }
-/*
-    } else if (className == 'シニアクラス') {
-      if (nDate.getDay() == 1 || nDate.getDay() == 2) {
-        if (nTime == '14:00 ~ (平日)') {
-          nDate.setHours(14,00);
-        } else {
-          nFailure = true;
-        }
-      } else {
-        nFailure = true;
-      }
-*/
+
     } else {
       nFailure = true;
     }
@@ -260,7 +252,7 @@ function sendFailureMail(type, username, mail, className) {
   + '【メール】contact@codeaid.jp\n'
   + '=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=\n';
 
-  MailApp.sendEmail(mail, title, cont);
+  GmailApp.sendEmail(mail, title, cont, {name: 'CodeAidプログラミング教室'});
 }
 
 /***
@@ -269,7 +261,6 @@ function sendFailureMail(type, username, mail, className) {
 function sendMailToUser(rStart, username, mail, className){
   var dateStr = rStart.toLocaleString("ja-JP");
   var title = '【CodeAid教室予約】予約完了';
-//  var png = getMapImage("大阪府吹田市垂水町1-7-23"); // 住所または場所名などGoogleMapsでわかるもの
   var message = '<html><body>' + username + '様<br><br>'
     + className + 'の予約が完了しました。<br>'
     + '【予約日時】' + dateStr + '<br><br>'
@@ -279,15 +270,13 @@ function sendMailToUser(rStart, username, mail, className){
     + '【住所】大阪府吹田市垂水町1-7-23-103<br>'
     + '【電話番号】090-8193-2811<br>'
     + '【メール】contact@codeaid.jp<br>'
-//    + '【Googleマップ】<br>'
-//    + '<img src="cid:map" width="400px" height="300px"><br>'
     + '=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=</body></html>';
-  MailApp.sendEmail({
-    to: mail,
-    subject: title,
-    htmlBody: message,
-//    inlineImages:{ map: png},
-//      attachments:[png]
+  GmailApp.sendEmail(
+    mail,
+    title,
+    '予約完了メール',{
+      htmlBody: message,
+      name: 'CodeAidプログラミング教室'
   });
 }
 

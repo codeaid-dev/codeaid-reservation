@@ -63,7 +63,7 @@ function sendFailureMail(username, mail, date) {
   + '【メール】contact@codeaid.jp\n'
   + '=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=\n';
 
-  MailApp.sendEmail(mail, title, cont);
+  GmailApp.sendEmail(mail, title, cont, {name: 'CodeAidプログラミング教室'});
 }
 
 /***
@@ -81,10 +81,12 @@ function sendMailToUser(username, mail, date){
     + '【電話番号】090-8193-2811<br>'
     + '【メール】contact@codeaid.jp<br>'
     + '=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=</body></html>';
-  MailApp.sendEmail({
-    to: mail,
-    subject: title,
-    htmlBody: message,
+  GmailApp.sendEmail(
+    mail,
+    title,
+    '予約キャンセル完了メール',{
+      htmlBody: message,
+      name: 'CodeAidプログラミング教室'
   });
 }
 
