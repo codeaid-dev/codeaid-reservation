@@ -122,19 +122,19 @@ function deleteReserve(mail, date, sheet, cal) {
   if (date < today) {
     return false;
   }
-  // L列2行目のデータからL列の最終行までを取得
-  var lastRow = sheet.getRange("L:L").getValues().filter(String).length - 1;
+  // G列2行目のデータからG列の最終行までを取得
+  var lastRow = sheet.getRange("G:G").getValues().filter(String).length - 1;
   if (lastRow <= 0) {
     return false;
   }
 
-  // L列2行目のデータからL列の最終行までを1列だけ取得(UIDリスト取得)
-  uidList = sheet.getRange(2, 12, lastRow, 1).getValues();
+  // G列2行目のデータからG列の最終行までを1列だけ取得(UIDリスト取得)
+  uidList = sheet.getRange(2, 7, lastRow, 1).getValues();
 
   Logger.log("uid: %s", uid);
   for (var i=0; i < uidList.length; i++) {
     if (uidList[i] == uid) {
-      var eid = sheet.getRange(i+2, 13).getValue();
+      var eid = sheet.getRange(i+2, 8).getValue(); // 削除するためのカレンダーEventIDをシートから取得
       Logger.log("eid: %s", eid);
       cal.getEventById(eid).deleteEvent(); // カレンダーから予約を削除
       sheet.deleteRow(i+2); // スプレッドシートから予約を削除

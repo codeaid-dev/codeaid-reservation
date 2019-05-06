@@ -1,5 +1,5 @@
 function sendToCalendar(e) {
-  try{
+  try {
     //有効なGooglesプレッドシートを開く
     var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
 
@@ -11,49 +11,39 @@ function sendToCalendar(e) {
     var num_row = sheet.getLastRow(); // 新規予約された行番号を取得
     var mail = sheet.getRange(num_row, 2).getValue(); // メルアド
     var name = sheet.getRange(num_row, 3).getValue(); // 名前
-    var className = sheet.getRange(num_row, 4).getValue(); // 予約クラス
 
     /***
      登録されているメールとクラスが一致する時に予約を受け付けるようチェック
+     * クラスチェックを削除 2019/05/06
     ***/
     var regMails = getRegistedMailList(); // 登録メールリストをシートから取得
     for (var i = 0; i < regMails.length; i++) {
-        if (regMails[i] == mail) {
-          if (getClassName(mail) == className) {
-            nFailure = false;
-            break;
-          } else { // 登録しているクラスと違う予約送信した場合
-            sheet.deleteRow(num_row);
-            sendFailureMail('6', name, mail, className);// 失敗のメール（登録クラスと違う）
-            return;
-          }
-        }
-        nFailure = true;
+      if (regMails[i] == mail) {
+        nFailure = false;
+        break;
+      }
+      nFailure = true;
     }
     if (nFailure) { // 登録メールがない場合
       sheet.deleteRow(num_row);
-      sendFailureMail('3', name, mail, className);// 失敗のメール（登録メールなし）
+      sendFailureMail('3', name, mail); // 失敗のメール（登録メールなし）
       return;
     }
 
     /***
      各クラスに応じた場所から予約日と時間を取得
+     * クラスチェックを削除・全クラス同じ時間割なのでカラムEとFの予約日と時間を記録 2019/05/06
     ***/
-    if (className == '初級クラス') {
-      var nDay = sheet.getRange(num_row, 5).getValue(); // 予約日
-      var nTime = sheet.getRange(num_row, 6).getValue(); // 予約時間
-    } else if (className == '中級クラス') {
-      var nDay = sheet.getRange(num_row, 7).getValue(); // 予約日
-      var nTime = sheet.getRange(num_row, 8).getValue(); // 予約時間
-    }
-    var nDate = new Date(nDay);
+    var nDay = sheet.getRange(num_row, 4).getValue(); // 予約日
+    var nTime = sheet.getRange(num_row, 5).getValue(); // 予約時間
+    var nDate = new Date(nDay); // 予約日からDateクラスオブジェクト作成
 
     /***
      指定された日が定休日か確認
     ***/
     if (isCloseday(cal, nDate)) {
       sheet.deleteRow(num_row);
-      sendFailureMail('7', name, mail, className);// 失敗のメール（定休日）
+      sendFailureMail('6', name, mail); // 失敗のメール（定休日）
       return;
     }
 
@@ -62,7 +52,7 @@ function sendToCalendar(e) {
     ***/
     if (isBefore(nDate)) {
       sheet.deleteRow(num_row);
-      sendFailureMail('9', name, mail, className);// 失敗のメール（昨日以前）
+      sendFailureMail('8', name, mail); // 失敗のメール（昨日以前）
       return;
     }
 
@@ -70,143 +60,101 @@ function sendToCalendar(e) {
      当日から2ヶ月以内であるか確認
     ***/
     var today = new Date();
-    if (nDate.getMonth() >= (today.getMonth()+2)) {
+    if (nDate.getMonth() >= (today.getMonth() + 2)) {
       if (nDate.getDate() > (today.getDate())) {
         sheet.deleteRow(num_row);
-        sendFailureMail('8', name, mail, className);// 失敗のメール（2ヶ月以上）
+        sendFailureMail('7', name, mail); // 失敗のメール（2ヶ月以上）
         return;
       }
     }
 
     /***
      各クラスに応じて指定された時間を設定
+     * クラスチェックを削除・全クラスに同じ時間割 2019/05/06
+     * 土(6)・日(0)・月(1)・火(2)曜日のみ時間をチェック
     ***/
-    if (className == '初級クラス') {
-      if (nDate.getDay() == 0 || nDate.getDay() == 6 /*|| isHoliday(nDate) == true*/) {
-        if (nTime == '10:00 ~ (土日)') {
-          nDate.setHours(10,00);
-        } else if (nTime == '11:30 ~ (土日)') {
-          nDate.setHours(11,30);
-        } else if (nTime == '13:30 ~ (土日)') {
-          nDate.setHours(13,30);
-        } else if (nTime == '15:00 ~ (土日)') {
-          nDate.setHours(15,00);
-        } else {
-          nFailure = true;
-        }
-      } else if (nDate.getDay() == 1 || nDate.getDay() == 2) {
-        if (nTime == '10:30 ~ (月火)') {
-          nDate.setHours(10,30);
-        } else if (nTime == '12:30 ~ (月火)') {
-          nDate.setHours(12,30);
-        } else if (nTime == '14:00 ~ (月火)') {
-          nDate.setHours(14,00);
-        } else if (nTime == '15:30 ~ (月火)') {
-          nDate.setHours(15,30);
-        } else if (nTime == '17:00 ~ (月火)') {
-          nDate.setHours(17,00);
-        } else if (nTime == '18:30 ~ (月火)') {
-          nDate.setHours(18,30);
-        } else {
-          nFailure = true;
-        }
+    if (nDate.getDay() == 6 || nDate.getDay() == 0 || nDate.getDay() == 1 || nDate.getDay() == 2) {
+      if (nTime == '10:30 ~') {
+        nDate.setHours(10, 30);
+      } else if (nTime == '12:30 ~') {
+        nDate.setHours(12, 30);
+      } else if (nTime == '14:00 ~') {
+        nDate.setHours(14, 00);
+      } else if (nTime == '15:30 ~') {
+        nDate.setHours(15, 30);
+      } else if (nTime == '17:00 ~') {
+        nDate.setHours(17, 00);
+      } else if (nTime == '18:30 ~') {
+        nDate.setHours(18, 30);
+      } else if (nTime == '20:00 ~') {
+        nDate.setHours(20, 00);
       } else {
         nFailure = true;
       }
-    } else if (className == '中級クラス') {
-      if (nDate.getDay() == 0 || nDate.getDay() == 6 /*|| isHoliday(nDate) == true*/) {
-        if (nTime == '16:30 ~ (土日)') {
-          nDate.setHours(16,30);
-        } else if (nTime == '18:00 ~ (土日)') {
-          nDate.setHours(18,00);
-        } else if (nTime == '19:30 ~ (土日)') {
-          nDate.setHours(19,30);
-        } else {
-          nFailure = true;
-        }
-      } else if (nDate.getDay() == 1 || nDate.getDay() == 2) {
-        if (nTime == '20:00 ~ (月火)') {
-          nDate.setHours(20,00);
-        } else {
-          nFailure = true;
-        }
-      } else {
-        nFailure = true;
-      }
-
     } else {
       nFailure = true;
     }
 
     if (nFailure) { // 各クラスに応じて予約できない日時を選択された時
       sheet.deleteRow(num_row);
-      sendFailureMail('1', name, mail, className); // 失敗のメール（日時不可）
+      sendFailureMail('1', name, mail); // 失敗のメール（日時不可）
       return;
     }
 
-    var rStart = new Date(nDate.getFullYear(),nDate.getMonth(),nDate.getDate(),nDate.getHours(),nDate.getMinutes(),0);
-    var rEnd = new Date(nDate.getFullYear(),nDate.getMonth(),nDate.getDate(),nDate.getHours()+1,nDate.getMinutes(),0);
+    var rStart = new Date(nDate.getFullYear(), nDate.getMonth(), nDate.getDate(), nDate.getHours(), nDate.getMinutes(), 0);
+    var rEnd = new Date(nDate.getFullYear(), nDate.getMonth(), nDate.getDate(), nDate.getHours() + 1, nDate.getMinutes(), 0);
 
     var events = cal.getEvents(rStart, rEnd); // 指定日時のイベント取得
 
     /***
      指定された日時にイベント（見学予約）があるか確認
     ***/
-    var tour = cal.getEvents(rStart, rEnd, {search:'イベント'});
+    var tour = cal.getEvents(rStart, rEnd, {
+      search: 'イベント'
+    });
     if (tour.length != 0) {
       sheet.deleteRow(num_row);
-      sendFailureMail('10', name, mail, className);// 失敗のメール（イベント）
-      return;
-    }
-
-    /***
-     指定された日時にチケットクラスがあるか確認
-    ***/
-    var ticket = cal.getEvents(rStart, rEnd, {search:'チケットクラス'});
-    if (ticket.length != 0) {
-      sheet.deleteRow(num_row);
-      sendFailureMail('11', name, mail, className);// 失敗のメール（チケットクラス）
+      sendFailureMail('9', name, mail); // 失敗のメール（イベント）
       return;
     }
 
     /***
      同じ日時に予約が重複しているか確認
     ***/
-    var uid = mail+nDate.getFullYear()+nDate.getMonth()+nDate.getDate()+nDate.getHours();
+    var uid = mail + nDate.getFullYear() + nDate.getMonth() + nDate.getDate() + nDate.getHours();
     if (existTicket(uid, sheet)) {
       sheet.deleteRow(num_row);
-      sendFailureMail('5', name, mail, className); // 失敗のメール（予約の重複）
+      sendFailureMail('5', name, mail); // 失敗のメール（予約の重複）
       return;
     } else {
-      sheet.getRange(num_row, 12).setValue(uid); // 重複チェック用UIDを追加
+      sheet.getRange(num_row, 7).setValue(uid); // 重複チェック用UIDを追加
     }
 
     /***
      各クラスの枠内が既に上限の予約数に達しているか確認
     ***/
-    if(events.length < LIMIT_CLASS){
+    if (events.length < LIMIT_CLASS) {
       // その月の上限を確認
-      var mid = mail+nDate.getFullYear()+nDate.getMonth();
+      var mid = mail + nDate.getFullYear() + nDate.getMonth();
       if (validTicket(mid, sheet)) {
-        sheet.getRange(num_row, 11).setValue(mid);
+        sheet.getRange(num_row, 6).setValue(mid);
 
-        var item = className + ": 予約済";
+        var item = "予約済";
         //予約情報をカレンダーに追加
         var res = cal.createEvent(item, rStart, rEnd);
-        sheet.getRange(num_row, 13).setValue(res.getId()); // カレンダーのEvent IDを追加
+        sheet.getRange(num_row, 8).setValue(res.getId()); // カレンダーのEvent IDを追加
 
-        sendMailToUser(rStart, name, mail, className); // 成功のメール
+        sendMailToUser(rStart, name, mail); // 成功のメール
       } else {
         sheet.deleteRow(num_row);
-        sendFailureMail('4', name, mail, className); // 失敗のメール（月の上限）
+        sendFailureMail('4', name, mail); // 失敗のメール（月の上限）
       }
-    }
-    else{ // 指定の時間が既に満席の時
+    } else { // 指定の時間が既に満席の時
       sheet.deleteRow(num_row);
-      sendFailureMail('2', name, mail, className); // 失敗のメール（満席）
+      sendFailureMail('2', name, mail); // 失敗のメール（満席）
     }
 
-  } catch(exp){
+  } catch (exp) {
     MailApp.sendEmail(mail, exp.message, exp.message);
   }
 
@@ -215,69 +163,67 @@ function sendToCalendar(e) {
 /***
  予約失敗時のメール送信
 ***/
-function sendFailureMail(type, username, mail, className) {
+function sendFailureMail(type, username, mail) {
   var title = '【CodeAid教室予約】予約できませんでした';
   var cont = username + "様　\n\n";
 
   if (type == 1) {
-    cont += '予約できない日時が選択されたため予約できませんでした。\n申し訳ございませんが、再度予約してください。\n'
-     + '問い合わせフォームからでも予約することができます。よろしくお願いします。\n\n';
+    cont += '予約できない日時が選択されたため予約できませんでした。\n申し訳ございませんが、再度予約してください。\n';
   } else if (type == 2) {
-    cont += className + "のお申し込みの時間は満席となっています。\n申し訳ございませんが、予約できませんでした。\n再度日時を変更して予約をお願いします。\n\n";
+    cont += "指定した日時は予約が満席です。\n申し訳ありませんが、他の日時で予約をお願いします。\n";
   } else if (type == 3) {
-    cont += "登録されていないメールアドレスでは予約できません。\n登録しているメールアドレスで予約をお願いします。\n\n";
+    cont += "登録されていないメールアドレスでは予約できません。\n登録しているメールアドレスで予約をお願いします。\n";
   } else if (type == 4) {
-    cont += "今月の予約できる上限数を超えています。\n来月以降に予約をお願いします。\n\n";
+    cont += "今月の予約できる上限数を超えています。\n来月以降に予約をお願いします。\n";
   } else if (type == 5) {
-    cont += "指定した日時は既に予約が完了しています。\n他の日時で予約をお願いします。\n\n";
+    cont += "指定した日時で予約は完了しています。\n申し訳ありませんが、他の日時で予約をお願いします。\n";
   } else if (type == 6) {
-    cont += "登録クラスと異なるクラスで指定されました。\n登録しているクラスで予約をお願いします。\n\n";
+    cont += "指定した日はお休みとなります。\n他の日時で予約をお願いします。\n";
   } else if (type == 7) {
-    cont += "指定した日はお休みとなります。\n他の日時で予約をお願いします。\n\n";
+    cont += "本日から2ヶ月以上先の予約はできません。\n本日から2ヶ月以内の日時で予約をお願いします。\n";
   } else if (type == 8) {
-    cont += "本日から2ヶ月以上先の予約はできません。\n本日から2ヶ月以内の日時で予約をお願いします。\n\n";
+    cont += "昨日以前の日付の予約はできません。\n本日以降の日時で予約をお願いします。\n";
   } else if (type == 9) {
-    cont += "昨日以前の日付の予約はできません。\n本日以降の日時で予約をお願いします。\n\n";
-  } else if (type == 10) {
-    cont += "指定した日時は各種イベントがあるため予約できません。\n申し訳ありませんが、他の日時で予約をお願いします。\n\n";
-  } else if (type == 11) {
-    cont += "指定した日時はすでに予約があります。\n申し訳ありませんが、他の日時で予約をお願いします。\n\n";
+    cont += "指定した日時はイベントがあるため予約できません。\n申し訳ありませんが、他の日時で予約をお願いします。\n";
   }
 
+  cont += '問い合わせフォーム、電話、メールからでも予約することができます。\n\n';
   cont += '※本メールに心当たりのない方は、大変お手数ですが削除していただきますよう、よろしくお願いいたします。\n\n';
 
-  cont += '=+=+=+=+= CodeAidプログラミング教室 =+=+=+=+=\n'
-  + '【住所】大阪府吹田市垂水町1-7-23-103\n'
-  + '【電話番号】090-8193-2811\n'
-  + '【メール】contact@codeaid.jp\n'
-  + '=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=\n';
+  cont += '=+=+=+=+= CodeAidプログラミング教室 =+=+=+=+=\n' +
+    '【住所】大阪府吹田市垂水町1-7-23-103\n' +
+    '【電話番号】090-8193-2811\n' +
+    '【メール】contact@codeaid.jp\n' +
+    '=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=\n';
 
-  GmailApp.sendEmail(mail, title, cont, {name: 'CodeAidプログラミング教室'});
+  GmailApp.sendEmail(mail, title, cont, {
+    name: 'CodeAidプログラミング教室'
+  });
 }
 
 /***
  予約完了メール送信
 ***/
-function sendMailToUser(rStart, username, mail, className){
+function sendMailToUser(rStart, username, mail) {
   var dateStr = rStart.toLocaleString("ja-JP");
   var title = '【CodeAid教室予約】予約完了';
-  var message = '<html><body>' + username + '様<br><br>'
-    + className + 'の予約が完了しました。<br>'
-    + '【予約日時】' + dateStr + '<br><br>'
-    + '予約をキャンセルする場合は、キャンセルフォームからキャンセルするか、お問い合わせフォーム/メールもしくは電話にてご連絡ください。<br><br>'
-    + '※本メールに心当たりのない方は、大変お手数ですが削除していただきますよう、よろしくお願いいたします。<br><br>'
-    + '=+=+=+=+= CodeAidプログラミング教室 =+=+=+=+=<br>'
-    + '【住所】大阪府吹田市垂水町1-7-23-103<br>'
-    + '【電話番号】090-8193-2811<br>'
-    + '【メール】contact@codeaid.jp<br>'
-    + '=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=</body></html>';
+  var message = '<html><body>' + username + '様<br><br>' +
+    '予約が完了しました。<br>' +
+    '【予約日時】' + dateStr + '<br><br>' +
+    '予約をキャンセルする場合は、キャンセルフォームからキャンセルするか、お問い合わせフォーム/メールもしくは電話にてご連絡ください。<br><br>' +
+    '※本メールに心当たりのない方は、大変お手数ですが削除していただきますよう、よろしくお願いいたします。<br><br>' +
+    '=+=+=+=+= CodeAidプログラミング教室 =+=+=+=+=<br>' +
+    '【住所】大阪府吹田市垂水町1-7-23-103<br>' +
+    '【電話番号】090-8193-2811<br>' +
+    '【メール】contact@codeaid.jp<br>' +
+    '=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=</body></html>';
   GmailApp.sendEmail(
     mail,
     title,
-    '予約完了メール',{
+    '予約完了メール', {
       htmlBody: message,
       name: 'CodeAidプログラミング教室'
-  });
+    });
 }
 
 /***
@@ -310,31 +256,9 @@ function getRegistedMailList() {
 }
 
 /***
- 登録クラスを取得
-***/
-function getClassName(mail) {
-  var selectList = [];
-
-  // マスタデータシートを取得
-  var datasheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('登録');
-  // B列2行目のデータからB列の最終行までを取得
-  var lastRow = datasheet.getRange("B:B").getValues().filter(String).length - 1;
-  Logger.log("lastRow = %s", lastRow);
-  // B列2行目のデータからB列の最終行までを1列だけ取得
-  selectList = datasheet.getRange(2, 2, lastRow, 1).getValues();
-  Logger.log("selectList = %s", selectList);
-
-  for (var i=0; i < selectList.length; i++) {
-    if (selectList[i] == mail) {
-      return datasheet.getRange(i+2, 3).getValue(); // 登録クラス
-    }
-  }
-}
-
-/***
  指定された日が定休日か確認
 ***/
-function isCloseday (cal, date) {
+function isCloseday(cal, date) {
   var events = cal.getEventsForDay(date);
   for (var i in events) {
     if (events[i].getTitle() == '定休日' || events[i].getTitle() == '臨時休講' || events[i].getTitle() == '休') {
@@ -347,7 +271,7 @@ function isCloseday (cal, date) {
 /***
  指定された日が祝日か確認
 ***/
-function isHoliday (date) {
+function isHoliday(date) {
   // 祝日カレンダーを取得
   var jcal = CalendarApp.getCalendarById("ja.japanese#holiday@group.v.calendar.google.com");
   var events = jcal.getEventsForDay(date);
@@ -375,23 +299,24 @@ function isBefore(date) {
 
 /***
  その月の上限を超えて予約しているか確認
+ * クラスチェック削除・フォーム項目数減少でF列にMID保存 2019/05/06
 ***/
-function validTicket(uid, sheet) {
-  var uidList = [];
+function validTicket(mid, sheet) {
+  var midList = [];
   var count = 0;
   var LIMIT_COUNT = 4; // 予約上限を設定(受講回数の上限)
 
-  // K列2行目のデータからK列の最終行までを取得(情報のある行数を算出)
-  var lastRow = sheet.getRange("K:K").getValues().filter(String).length - 1;
+  // F列最終行までを取得(情報のある行数を算出)
+  var lastRow = sheet.getRange("F:F").getValues().filter(String).length - 1;
   if (lastRow <= 0) {
     return true;
   }
 
-  // K列2行目のデータからK列の最終行までを1列だけ取得
-  uidList = sheet.getRange(2, 11, lastRow, 1).getValues();
+  // F列2行目のデータからF列の最終行までを1列だけ取得
+  midList = sheet.getRange(2, 6, lastRow, 1).getValues();
 
-  for (var i=0; i < uidList.length; i++) {
-    if (uidList[i] == uid) {
+  for (var i = 0; i < midList.length; i++) {
+    if (midList[i] == mid) {
       count++;
     }
   }
@@ -404,38 +329,24 @@ function validTicket(uid, sheet) {
 
 /***
  同じ日時で予約しているか確認
+ * クラスチェック削除・フォーム項目数減少でG列にUID保存 2019/05/06
 ***/
 function existTicket(uid, sheet) {
   var uidList = [];
   var count = 0;
 
-  // L列2行目のデータからK列の最終行までを取得
-  var lastRow = sheet.getRange("L:L").getValues().filter(String).length - 1;
+  // G列最終行を取得
+  var lastRow = sheet.getRange("G:G").getValues().filter(String).length - 1;
   if (lastRow <= 0) {
     return false;
   }
 
-  // L列2行目のデータからL列の最終行までを1列だけ取得
-  uidList = sheet.getRange(2, 12, lastRow, 1).getValues();
+  // G列2行目のデータから最終行までを1列だけ取得
+  uidList = sheet.getRange(2, 7, lastRow, 1).getValues();
 
-  for (var i=0; i < uidList.length; i++) {
+  for (var i = 0; i < uidList.length; i++) {
     if (uidList[i] == uid) {
       return true;
-    }
-  }
-  return false;
-}
-
-/***
- 設定シートから指定した項目の値を返却
-***/
-function getValue(item) {
-  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('設定');
-  var values = sheet.getRange().getValues();
-  for (var i in values) {
-    if (values[i][0] == item) {
-      var res = values[i][1].split(',');
-      return res;
     }
   }
   return false;
