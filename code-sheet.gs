@@ -1,7 +1,8 @@
 function sendToCalendar(e) {
   try {
     //有効なGooglesプレッドシートを開く
-    var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+//    var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+    var sheet = SpreadsheetApp.openById('10hGRjVHrRo-4bJ-IicdiXMlYrerTVwPPw_5KQmR6Dgw').getSheetByName('予約状況');
 
     //予約を記載するカレンダーを取得
     var cal = CalendarApp.getCalendarById("ckvtvietabikeccicq31vpok10@group.calendar.google.com");
