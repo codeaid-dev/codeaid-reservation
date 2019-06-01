@@ -1,17 +1,44 @@
 function sendToCalendar(e) {
   try {
     //有効なGooglesプレッドシートを開く
-//    var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
     var sheet = SpreadsheetApp.openById('10hGRjVHrRo-4bJ-IicdiXMlYrerTVwPPw_5KQmR6Dgw').getSheetByName('予約状況');
 
     //予約を記載するカレンダーを取得
     var cal = CalendarApp.getCalendarById("ckvtvietabikeccicq31vpok10@group.calendar.google.com");
 
+    var form = FormApp.getActiveForm(); // アクティブフォームを取得
+
+    var formResponses = form.getResponses(); // 全回答内容を取得
+
+    for (var i = 0; i < formResponses.length; i++) {
+      var formResponse = formResponses[i]; // 回答ひとつ分を取得
+      var itemResponses = formResponse.getItemResponses(); // 質問項目を取得
+      var mail = formResponse.getRespondentEmail(); // 予約者のメールアドレス取得
+      Logger.log(mail);
+      for (var j = 0; j < itemResponses.length; j++) {　// 回答内容をひとつずつチェック
+        var itemResponse = itemResponses[j];
+        var question = itemResponse.getItem().getTitle();
+        var answer = itemResponse.getResponse();
+        if (question == '名前') { // 予約者の名前を取得
+          var name = answer;
+          Logger.log(name);
+        }
+        if (question == '予約日') { // 予約日を取得
+          var nDay = answer.replace(/-/g, '/');
+          Logger.log(nDay);
+          var nDate = new Date(nDay); // 予約日からDateクラスオブジェクト作成
+        }
+        if (question == '予約時間') { // 予約時間を取得
+          var nTime = answer;
+          Logger.log(nTime);
+        }
+      }
+    }
+    form.deleteAllResponses(); // 予約フォームの回答を削除
+
     var nFailure = false;
     var LIMIT_CLASS = 1; // 予約上限を設定(同一時間の上限)
     var num_row = sheet.getLastRow(); // 新規予約された行番号を取得
-    var mail = sheet.getRange(num_row, 2).getValue(); // メルアド
-    var name = sheet.getRange(num_row, 3).getValue(); // 名前
 
     /***
      登録されているメールとクラスが一致する時に予約を受け付けるようチェック
@@ -30,14 +57,6 @@ function sendToCalendar(e) {
       sendFailureMail('3', name, mail); // 失敗のメール（登録メールなし）
       return;
     }
-
-    /***
-     各クラスに応じた場所から予約日と時間を取得
-     * クラスチェックを削除・全クラス同じ時間割なのでカラムEとFの予約日と時間を記録 2019/05/06
-    ***/
-    var nDay = sheet.getRange(num_row, 4).getValue(); // 予約日
-    var nTime = sheet.getRange(num_row, 5).getValue(); // 予約時間
-    var nDate = new Date(nDay); // 予約日からDateクラスオブジェクト作成
 
     /***
      指定された日が定休日か確認
@@ -156,7 +175,7 @@ function sendToCalendar(e) {
     }
 
   } catch (exp) {
-    MailApp.sendEmail(mail, exp.message, exp.message);
+    GmailApp.sendEmail(mail, exp.message, exp.message);
   }
 
 }
@@ -248,10 +267,8 @@ function getRegistedMailList() {
   var datasheet = SpreadsheetApp.openById('10hGRjVHrRo-4bJ-IicdiXMlYrerTVwPPw_5KQmR6Dgw').getSheetByName('登録');
   // B列2行目のデータからB列の最終行までを取得
   var lastRow = datasheet.getRange("B:B").getValues().filter(String).length - 1;
-  Logger.log("lastRow = %s", lastRow);
   // B列2行目のデータからB列の最終行までを1列だけ取得
   selectList = datasheet.getRange(2, 2, lastRow, 1).getValues();
-  Logger.log("selectList = %s", selectList);
 
   return selectList;
 }
