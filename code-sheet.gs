@@ -245,7 +245,7 @@ function getRegistedMailList() {
   var selectList = [];
 
   // マスタデータシートを取得
-  var datasheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('登録');
+  var datasheet = SpreadsheetApp.openById('10hGRjVHrRo-4bJ-IicdiXMlYrerTVwPPw_5KQmR6Dgw').getSheetByName('登録');
   // B列2行目のデータからB列の最終行までを取得
   var lastRow = datasheet.getRange("B:B").getValues().filter(String).length - 1;
   Logger.log("lastRow = %s", lastRow);
