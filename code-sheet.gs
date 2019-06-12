@@ -219,6 +219,9 @@ function sendFailureMail(type, username, mail) {
   GmailApp.sendEmail(mail, title, cont, {
     name: 'CodeAidプログラミング教室'
   });
+  GmailApp.sendEmail('codeaid.lab@gmail.com', 'CodeAid教室予約エラー通知', '教室予約でエラーが発生しました。\n送信したエラー内容を確認してください。', {
+    name: 'CodeAidプログラミング教室'
+  });
 }
 
 /***
@@ -244,6 +247,9 @@ function sendMailToUser(rStart, username, mail) {
       htmlBody: message,
       name: 'CodeAidプログラミング教室'
     });
+  GmailApp.sendEmail('codeaid.lab@gmail.com', 'CodeAid教室予約完了通知', '教室予約が完了しました。\n予約日時を確認してください。', {
+    name: 'CodeAidプログラミング教室'
+  });
 }
 
 /***
