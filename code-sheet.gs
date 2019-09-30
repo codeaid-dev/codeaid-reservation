@@ -45,8 +45,11 @@ function sendToCalendar(e) {
      * クラスチェックを削除 2019/05/06
     ***/
     var regMails = getRegistedMailList(); // 登録メールリストをシートから取得
+    var monLimits = getMonthlyLimitList(); // 登録月上限リストをシートから取得
+    var limit = 4;
     for (var i = 0; i < regMails.length; i++) {
       if (regMails[i] == mail) {
+        limit = parseInt(monLimits[i]); // 月上限値を取得
         nFailure = false;
         break;
       }
@@ -156,7 +159,7 @@ function sendToCalendar(e) {
     if (events.length < LIMIT_CLASS) {
       // その月の上限を確認
       var mid = mail + nDate.getFullYear() + nDate.getMonth();
-      if (validTicket(mid, sheet)) {
+      if (validTicket(mid, limit, sheet)) {
         sheet.getRange(num_row, 6).setValue(mid);
 
         var item = "予約済";
@@ -278,6 +281,21 @@ function getRegistedMailList() {
 
   return selectList;
 }
+/***
+ 登録月上限のリストを取得
+***/
+function getMonthlyLimitList() {
+  var selectList = [];
+
+  // マスタデータシートを取得
+  var datasheet = SpreadsheetApp.openById('10hGRjVHrRo-4bJ-IicdiXMlYrerTVwPPw_5KQmR6Dgw').getSheetByName('登録');
+  // C列2行目のデータからC列の最終行を取得
+  var lastRow = datasheet.getRange("C:C").getValues().filter(String).length - 1;
+  // C列2行目のデータからC列の最終行までを1列だけ取得
+  selectList = datasheet.getRange(2, 3, lastRow, 1).getValues();
+
+  return selectList;
+}
 
 /***
  指定された日が定休日か確認
@@ -325,10 +343,10 @@ function isBefore(date) {
  その月の上限を超えて予約しているか確認
  * クラスチェック削除・フォーム項目数減少でF列にMID保存 2019/05/06
 ***/
-function validTicket(mid, sheet) {
+function validTicket(mid, limit, sheet) {
   var midList = [];
   var count = 0;
-  var LIMIT_COUNT = 4; // 予約上限を設定(受講回数の上限)
+  //var LIMIT_COUNT = 4; // 予約上限を設定(受講回数の上限)
 
   // F列最終行までを取得(情報のある行数を算出)
   var lastRow = sheet.getRange("F:F").getValues().filter(String).length - 1;
@@ -344,7 +362,7 @@ function validTicket(mid, sheet) {
       count++;
     }
   }
-  if (count < LIMIT_COUNT) {
+  if (count < limit) {
     return true;
   } else {
     return false;
