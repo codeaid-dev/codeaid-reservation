@@ -4,7 +4,7 @@ function sendToCalendar(e) {
     var sheet = SpreadsheetApp.openById('10hGRjVHrRo-4bJ-IicdiXMlYrerTVwPPw_5KQmR6Dgw').getSheetByName('予約状況');
 
     //予約を記載するカレンダーを取得
-    var cal = CalendarApp.getCalendarById("ckvtvietabikeccicq31vpok10@group.calendar.google.com");
+    var cal = CalendarApp.getCalendarById("64e3647p1tlnd3qaa6v5fm4ag0@group.calendar.google.com");
 
     var form = FormApp.getActiveForm(); // アクティブフォームを取得
 
@@ -222,7 +222,7 @@ function sendFailureMail(type, username, mail) {
   GmailApp.sendEmail(mail, title, cont, {
     name: 'CodeAidプログラミング教室'
   });
-  GmailApp.sendEmail('codeaid.lab@gmail.com', 'CodeAid教室予約エラー通知', '教室予約でエラーが発生しました。\n送信したエラー内容を確認してください。', {
+  GmailApp.sendEmail('codeaid.school@gmail.com', 'CodeAid教室予約エラー通知', '教室予約でエラーが発生しました。\n送信したエラー内容を確認してください。', {
     name: 'CodeAidプログラミング教室'
   });
 }
@@ -250,7 +250,7 @@ function sendMailToUser(rStart, username, mail) {
       htmlBody: message,
       name: 'CodeAidプログラミング教室'
     });
-  GmailApp.sendEmail('codeaid.lab@gmail.com', 'CodeAid教室予約完了通知', '教室予約が完了しました。\n予約日時を確認してください。', {
+  GmailApp.sendEmail('codeaid.school@gmail.com', 'CodeAid教室予約完了通知', '教室予約が完了しました。\n予約日時を確認してください。', {
     name: 'CodeAidプログラミング教室'
   });
 }
