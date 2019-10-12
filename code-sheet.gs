@@ -57,7 +57,7 @@ function sendToCalendar(e) {
     }
     if (nFailure) { // 登録メールがない場合
       sheet.deleteRow(num_row);
-      sendFailureMail('3', name, mail); // 失敗のメール（登録メールなし）
+      sendFailureMail('3', name, mail, nDate); // 失敗のメール（登録メールなし）
       return;
     }
 
@@ -66,7 +66,7 @@ function sendToCalendar(e) {
     ***/
     if (isCloseday(cal, nDate)) {
       sheet.deleteRow(num_row);
-      sendFailureMail('6', name, mail); // 失敗のメール（定休日）
+      sendFailureMail('6', name, mail, nDate); // 失敗のメール（定休日）
       return;
     }
 
@@ -75,7 +75,7 @@ function sendToCalendar(e) {
     ***/
     if (isBefore(nDate)) {
       sheet.deleteRow(num_row);
-      sendFailureMail('8', name, mail); // 失敗のメール（昨日以前）
+      sendFailureMail('8', name, mail, nDate); // 失敗のメール（昨日以前）
       return;
     }
 
@@ -86,7 +86,7 @@ function sendToCalendar(e) {
     if (nDate.getMonth() >= (today.getMonth() + 2)) {
       if (nDate.getDate() > (today.getDate())) {
         sheet.deleteRow(num_row);
-        sendFailureMail('7', name, mail); // 失敗のメール（2ヶ月以上）
+        sendFailureMail('7', name, mail, nDate); // 失敗のメール（2ヶ月以上）
         return;
       }
     }
@@ -120,7 +120,7 @@ function sendToCalendar(e) {
 
     if (nFailure) { // 各クラスに応じて予約できない日時を選択された時
       sheet.deleteRow(num_row);
-      sendFailureMail('1', name, mail); // 失敗のメール（日時不可）
+      sendFailureMail('1', name, mail, nDate, nTime); // 失敗のメール（日時不可）
       return;
     }
 
@@ -137,7 +137,7 @@ function sendToCalendar(e) {
     });
     if (tour.length != 0) {
       sheet.deleteRow(num_row);
-      sendFailureMail('9', name, mail); // 失敗のメール（イベント）
+      sendFailureMail('9', name, mail, nDate, nTime); // 失敗のメール（イベント）
       return;
     }
 
@@ -147,7 +147,7 @@ function sendToCalendar(e) {
     var uid = mail + nDate.getFullYear() + nDate.getMonth() + nDate.getDate() + nDate.getHours();
     if (existTicket(uid, sheet)) {
       sheet.deleteRow(num_row);
-      sendFailureMail('5', name, mail); // 失敗のメール（予約の重複）
+      sendFailureMail('5', name, mail, nDate, nTime); // 失敗のメール（予約の重複）
       return;
     } else {
       sheet.getRange(num_row, 7).setValue(uid); // 重複チェック用UIDを追加
@@ -170,11 +170,11 @@ function sendToCalendar(e) {
         sendMailToUser(rStart, name, mail); // 成功のメール
       } else {
         sheet.deleteRow(num_row);
-        sendFailureMail('4', name, mail); // 失敗のメール（月の上限）
+        sendFailureMail('4', name, mail, nDate, nTime); // 失敗のメール（月の上限）
       }
     } else { // 指定の時間が既に満席の時
       sheet.deleteRow(num_row);
-      sendFailureMail('2', name, mail); // 失敗のメール（満席）
+      sendFailureMail('2', name, mail, nDate, nTime); // 失敗のメール（満席）
     }
 
   } catch (exp) {
@@ -186,7 +186,7 @@ function sendToCalendar(e) {
 /***
  予約失敗時のメール送信
 ***/
-function sendFailureMail(type, username, mail) {
+function sendFailureMail(type, username, mail, date, time) {
   var title = '【CodeAid教室予約】予約できませんでした';
   var cont = username + "様　\n\n";
 
@@ -210,6 +210,8 @@ function sendFailureMail(type, username, mail) {
     cont += "指定した日時はイベントがあるため予約できません。\n申し訳ありませんが、他の日時で予約をお願いします。\n";
   }
 
+  cont += '予約しようとした日時：　';
+  cont += '' + date.getFullYear() + '/' + (date.getMonth()+1) + '/' + date.getDate() + ' ' + time + '\n';
   cont += '問い合わせフォーム、電話、メールからでも予約することができます。\n\n';
   cont += '※本メールに心当たりのない方は、大変お手数ですが削除していただきますよう、よろしくお願いいたします。\n\n';
 
