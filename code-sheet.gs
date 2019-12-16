@@ -305,7 +305,7 @@ function getMonthlyLimitList() {
 function isCloseday(cal, date) {
   var events = cal.getEventsForDay(date);
   for (var i in events) {
-    if (events[i].getTitle() == '定休日' || events[i].getTitle() == '臨時休講' || events[i].getTitle() == '休') {
+    if (events[i].getTitle() == '定休日' || events[i].getTitle() == '休講' || events[i].getTitle() == '休日') {
       return true;
     }
   }
