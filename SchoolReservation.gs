@@ -10,12 +10,13 @@ function makeReservation(e) {
 
   const LIMIT_CLASS = 1; // 予約上限を設定(同一時間の上限)
 
-  var lastRow = sheet.getLastRow(); // 新規予約された行番号を取得(フォーム送信時にシートへ自動保存されるデータ)
+  //var lastRow = sheet.getLastRow(); // 新規予約された行番号を取得(フォーム送信時にシートへ自動保存されるデータ)
 
   var mailaddr = e.namedValues['メールアドレス'].toString(); // 予約者のメールアドレス
   var name = e.namedValues['名前'].toString(); // 予約者の名前
   var rdate = new Date(e.namedValues['予約日']); // 予約日
   var stime = e.namedValues['予約時間'].toString(); // 予約時間
+  var tstamp = new Date(e.namedValues['タイムスタンプ']); // タイムスタンプ
 
   /***
    指定された時間を設定
@@ -35,7 +36,7 @@ function makeReservation(e) {
   } else if (stime == '20:00 ~') {
     rdate.setHours(20, 00);
   } else {
-    sheet.deleteRow(lastRow);
+    deleteTargetRow(sheet, tstamp);
     sendFailureMail(1, name, mailaddr, rdate, stime); // 失敗のメール（日時不可＊必須項目なのでありえないエラー）
     return;
   }
@@ -76,7 +77,7 @@ function makeReservation(e) {
       limit = parseInt(monLimits[i]); // 月上限値を取得
       break;
     } else if (i == regMails.length - 1) { // 登録メールがない場合
-      sheet.deleteRow(lastRow);
+      deleteTargetRow(sheet, tstamp);
       sendFailureMail(3, name, mailaddr, rdate, stime); // 失敗のメール（登録メールなし）
       return;
     }
@@ -86,17 +87,8 @@ function makeReservation(e) {
    月上限を超えてるか確認
   ***/
   if (!checkLimit(sheet, mailaddr, rdate, limit)) {
-    sheet.deleteRow(lastRow);
+    deleteTargetRow(sheet, tstamp);
     sendFailureMail(4, name, mailaddr, rdate, stime); // 失敗のメール（月の上限）
-    return;
-  }
-
-  /***
-   指定された日が定休日か確認
-  ***/
-  if (isCloseday(cal, rdate)) {
-    sheet.deleteRow(lastRow);
-    sendFailureMail(6, name, mailaddr, rdate, stime); // 失敗のメール（定休日）
     return;
   }
 
@@ -104,8 +96,17 @@ function makeReservation(e) {
    指定された日が昨日以前か確認
   ***/
   if (isBefore(rdate)) {
-    sheet.deleteRow(lastRow);
+    deleteTargetRow(sheet, tstamp);
     sendFailureMail(8, name, mailaddr, rdate, stime); // 失敗のメール（昨日以前）
+    return;
+  }
+
+  /***
+   指定された日が定休日か確認
+  ***/
+  if (isCloseday(cal, rdate)) {
+    deleteTargetRow(sheet, tstamp);
+    sendFailureMail(6, name, mailaddr, rdate, stime); // 失敗のメール（定休日）
     return;
   }
 
@@ -113,7 +114,7 @@ function makeReservation(e) {
    指定された日が２ヶ月以内か確認
   ***/
   if (twoMonthsLater(rdate)) {
-    sheet.deleteRow(lastRow);
+    deleteTargetRow(sheet, tstamp);
     sendFailureMail(7, name, mailaddr, rdate, stime); // 失敗のメール（2ヶ月以上）
     return;
   }
@@ -127,7 +128,7 @@ function makeReservation(e) {
     search: id
   });
   if (exists.length != 0) {
-    sheet.deleteRow(lastRow);
+    deleteTargetRow(sheet, tstamp);
     sendFailureMail(5, name, mailaddr, rdate, stime); // 失敗のメール（予約の重複）
     return;
   }
@@ -138,7 +139,7 @@ function makeReservation(e) {
   ***/
   var events = cal.getEvents(rdate, end); // 指定日時のイベントリスト取得
   if (events.length >= LIMIT_CLASS) {
-    sheet.deleteRow(lastRow);
+    deleteTargetRow(sheet, tstamp);
     sendFailureMail(2, name, mailaddr, rdate, stime); // 失敗のメール（満席）
     return;
   }
@@ -229,6 +230,24 @@ function checkLimit(sheet, mailaddr, rdate, limit) {
   }
 
   return true;
+}
+
+/***
+ エラー時にシートに書き込まれた行を削除
+***/
+function deleteTargetRow(sheet, tstamp) {
+  // 予約状況シートのA列2行目のデータからA列の最終行までの行数を取得（見出しを除く）
+  var num = sheet.getRange("A:A").getValues().filter(String).length - 1;
+  // 予約状況シートのA列2行目のデータからA列の最終行までのデータを取得（タイムスタンプ取得）
+  var recstamps = sheet.getRange(2, 1, num, 1).getValues();
+
+  for (var i = 0; i < recstamps.length; i++) {
+    var recstamp = new Date(recstamps[i]);
+    // タイムスタンプが同じならばシートの行を削除
+    if (tstamp.getTime() == recstamp.getTime()) {
+        sheet.deleteRow(i+2);
+    }
+  }
 }
 
 /***
