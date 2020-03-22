@@ -218,7 +218,7 @@ function sendFailureMail(type, username, mail, date, time) {
   cont += '=+=+=+=+= CodeAidプログラミング教室 =+=+=+=+=\n' +
     '【住所】大阪府吹田市垂水町1-7-23-103\n' +
     '【電話番号】090-8193-2811\n' +
-    '【メール】contact@codeaid.jp\n' +
+    '【メール】school@codeaid.jp\n' +
     '=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=\n';
 
   GmailApp.sendEmail(mail, title, cont, {
@@ -243,7 +243,7 @@ function sendMailToUser(rStart, username, mail) {
     '=+=+=+=+= CodeAidプログラミング教室 =+=+=+=+=<br>' +
     '【住所】大阪府吹田市垂水町1-7-23-103<br>' +
     '【電話番号】090-8193-2811<br>' +
-    '【メール】contact@codeaid.jp<br>' +
+    '【メール】school@codeaid.jp<br>' +
     '=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=</body></html>';
   GmailApp.sendEmail(
     mail,

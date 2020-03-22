@@ -151,7 +151,7 @@ function sendFailureMail(name, mail, date) {
     + '=+=+=+=+= CodeAidプログラミング教室 =+=+=+=+=<br>'
     + '【住所】大阪府吹田市垂水町1-7-23-103<br>'
     + '【電話番号】090-8193-2811<br>'
-    + '【メール】contact@codeaid.jp<br>'
+    + '【メール】school@codeaid.jp<br>'
     + '=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+</body></html>';
 
   GmailApp.sendEmail(mail, title, '予約キャンセルエラー', {
@@ -174,7 +174,7 @@ function sendCompletionMail(name, mail, date){
     + '=+=+=+=+= CodeAidプログラミング教室 =+=+=+=+=<br>'
     + '【住所】大阪府吹田市垂水町1-7-23-103<br>'
     + '【電話番号】090-8193-2811<br>'
-    + '【メール】contact@codeaid.jp<br>'
+    + '【メール】school@codeaid.jp<br>'
     + '=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+</body></html>';
 
   GmailApp.sendEmail( mail, title, '予約キャンセル完了', {
