@@ -244,8 +244,8 @@ function deleteTargetRow(sheet, tstamp) {
   for (var i = 0; i < recstamps.length; i++) {
     var recstamp = new Date(recstamps[i]);
     // タイムスタンプが同じならばシートの行を削除
-    if (tstamp.getTime() == recstamp.getTime()) {
-        sheet.deleteRow(i+2);
+    if ((tstamp.getTime() - recstamp.getTime()) <= 5000 && (tstamp.getTime() - recstamp.getTime()) >= -5000) {
+      sheet.deleteRow(i+2);
     }
   }
 }
@@ -260,21 +260,21 @@ function sendFailureMail(type, name, mailaddr, date, stime) {
   cont += '【予約エラー】<br>';
 
   if (type == 1) {
-    cont += '（予期せぬエラー）予約できない時間が選択されました。<br>予期せぬエラーのためメール・電話で予約を確認してください。<br><br>';
+    cont += '（予期せぬエラー）予約できない時間が選択されました。<br>予期せぬエラーのためメールまたはお電話にて予約状況をご確認ください。<br><br>';
   } else if (type == 2) {
-    cont += "指定した日時は満席のため予約できません。<br>申し訳ありませんが、他の日時で予約をお願いします。<br><br>";
+    cont += "指定した日時ではご予約いただけません。<br>申し訳ありませんが、カレンダーをご確認の上、再度他の日時でご予約ください。<br><br>";
   } else if (type == 3) {
-    cont += "登録されていないメールアドレスで予約フォームが送信されました。<br>入力ミスも考えられます。<br><br>";
+    cont += "登録されていないメールアドレスで予約フォームが送信されました。<br>メールアドレスをご確認ください。<br><br>";
   } else if (type == 4) {
-    cont += "今月の予約できる上限数を超えています。<br>来月以降に予約をお願いします。<br><br>";
+    cont += "一ヶ月の予約できる上限数を超えています。<br>翌月以降でご予約ください。<br><br>";
   } else if (type == 5) {
-    cont += "予約済の日時で予約しようとしています。<br>ご確認ください。<br><br>";
+    cont += "予約済の日時で重複して予約しようとしています。<br>申し訳ありませんが、カレンダーをご確認の上、再度他の日時でご予約ください。<br><br>";
   } else if (type == 6) {
-    cont += "指定した日はお休みとなります。<br>他の日時で予約をお願いします。<br><br>";
+    cont += "指定した日はお休みとなります。<br>申し訳ありませんが、カレンダーをご確認の上、再度他の日時でご予約ください。<br><br>";
   } else if (type == 7) {
-    cont += "本日から2ヶ月以上先の予約はできません。<br>本日から2ヶ月以内の日時で予約をお願いします。<br><br>";
+    cont += "本日から2ヶ月以上先の日付ではご予約いただけません。<br>本日から2ヶ月以内の日時でご予約ください。<br><br>";
   } else if (type == 8) {
-    cont += "昨日以前の日付の予約はできません。<br>本日以降の日時で予約をお願いします。<br><br>";
+    cont += "昨日以前の日付ではご予約いただけません。<br>本日以降の日時でご予約ください。<br><br>";
   }
 
   if (type == 1 || type == 3) {
